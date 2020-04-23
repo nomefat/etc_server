@@ -274,6 +274,27 @@ class MyTcpHandle(socketserver.StreamRequestHandler):
                                 print('N1_%s 写参数返回crc=%d:%d' % (str_n1id,crc1,crc))
                             self.data = self.data[cmd_lengh+2:]
 
+                        elif cmd1 == 0xa1:
+                            cmd1,cmd2,data_count,number= struct.unpack('<BBBI', self.data[0:7])
+                            str_d = "IO_data-%d-%d:" % (number,data_count)
+                            status = ['off','on']
+                            for i in range(data_count):
+                                io,sys_time,second,ms = struct.unpack('<BBBI', self.data[7+i*11:7+(i+1)*11])
+                                str_d += '[%s: io=%d:%d:%d %s ]    ' % (time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(sys_time)),io,second,(ms&0x7f),status[((ms&0x80)>>15)])
+                                 
+                            str_d + '\n'
+                            MyTcpHandle.n1_id[str_n1id]['real_file'].write(str_d)
+                                
+                            if MyTcpHandle.print_enable:
+                                print(str_d)
+                            MyTcpHandle.n1_id[str_n1id]['real_file'].flush()
+                            
+                            data2 = struct.pack('<IIIHBBBIB',0X584DAAAA,0,0,2+5,0,0xa1,1,number,data_count)
+                            crc_value = MyTcpHandle.crc(data2[4:])
+                            data2 += bytes([(crc_value>>8) & 0xff,crc_value & 0xff])                            
+                            self.request.sendall(data2)
+
+                            self.data = self.data[cmd_lengh+2:]  
                                 
 def start_down_firm(str_n1id,file_name):
 
