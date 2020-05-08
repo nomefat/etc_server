@@ -279,8 +279,8 @@ class MyTcpHandle(socketserver.StreamRequestHandler):
                             str_d = "IO_data-%d-%d:" % (number,data_count)
                             status = ['off','on']
                             for i in range(data_count):
-                                io,sys_time,second,ms = struct.unpack('<BBBI', self.data[7+i*11:7+(i+1)*11])
-                                str_d += '[%s: io=%d:%d:%d %s ]    ' % (time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(sys_time)),io,second,(ms&0x7f),status[((ms&0x80)>>15)])
+                                io,sys_time,second,ms = struct.unpack('<BIIH', self.data[7+i*11:7+(i+1)*11])
+                                str_d += '[%s: io=%d:%d:%d %s ]    ' % (time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(sys_time)),io,second,(ms&0x7FFF),status[((ms&0x8000)>>15)])
                                  
                             str_d + '\n'
                             MyTcpHandle.n1_id[str_n1id]['real_file'].write(str_d)
